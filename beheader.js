@@ -1,3 +1,11 @@
+const isWindows = process.platform === "win32";
+const unzipCmd = isWindows
+   ? `"C:\\Program Files\\Git\\usr\\bin\\unzip.exe"`   
+   : "unzip";
+const zipCmd = isWindows
+   ? `"C:\\Program Files\\Git\\usr\\bin\\zip.exe"`
+   : "zip";
+const mp4editCmd = isWindows ? "mp4edit.exe" : "./mp4edit";
 const { $ } = require("bun");
 const fs = require("fs/promises");
 
@@ -116,10 +124,12 @@ function padLeft (str, targetLen, padChar = "0") {
   return padChar.repeat(Math.max(0, targetLen - str.length)) + str;
 }
 
-const tmp = Math.random().toString(36).slice(2);
+const os = require("os");
+const path = require("path");
+const tmp = path.join(os.tmpdir(), Math.random().toString(36).slice(2));
 
 // Convert input image to 32 bpp PNG, strip all metadata
-await $`convert "${image}" -define png:color-type=6 -depth 8 -alpha on -strip "${tmp + ".png"}"`;
+await $`magick convert "${image}" -define png:color-type=6 -depth 8 -alpha on -strip "${tmp + ".png"}"`;
 
 const pngFile = Bun.file(tmp + ".png");
 const atomFile = Bun.file(tmp + ".atom");
@@ -177,7 +187,7 @@ try {
 
   // The ftyp atom is not yet finished, we replace it only to measure offsets
   await Bun.write(atomFile, ftypBuffer);
-  await $`./mp4edit --replace ftyp:"${tmp + ".atom"}" "${tmp + "0.mp4"}" "${tmp + "1.mp4"}"`;
+  await $`${mp4editCmd} --replace ftyp:"${tmp + ".atom"}" "${tmp + "0.mp4"}" "${tmp + "1.mp4"}"`;
 
   // Wrap the input HTML document (if any) to avoid rendering surrounding garbage
   const htmlString = html ? `--><style>body{font-size:0}</style><div style=font-size:initial>${await htmlFile.text()}</div><!--` : "";
@@ -198,7 +208,7 @@ try {
 
   // Insert the skip atom into the output file to get its final offset
   await Bun.write(atomFile, skipBuffer);
-  await $`./mp4edit --insert skip:"${tmp + ".atom"}" "${tmp + "1.mp4"}" "${tmp + "2.mp4"}"`;
+  await $ await $`${mp4editCmd} --insert skip:"${tmp + ".atom"}" "${tmp + "1.mp4"}" "${tmp + "2.mp4"}";`;
 
   // Find offset of PNG data in MP4 file
   const offsetReference = await Bun.file(tmp + "2.mp4").bytes();
@@ -258,7 +268,7 @@ try {
 
   // Now the ftyp atom is ready, replace it and write the output file
   await Bun.write(atomFile, ftypBuffer);
-  await $`./mp4edit --replace ftyp:"${tmp + ".atom"}" "${tmp + "2.mp4"}" "${output}"`;
+  await $`${mp4editCmd} --replace ftyp:"${tmp + ".atom"}" "${tmp + "2.mp4"}" "${output}"`;
 
   // Fix earlier bithack, splitting off the extra ftyp atom
   const outputfd = await fs.open(output, "r+");
@@ -314,21 +324,21 @@ try {
   // Append any other files found on the command line
   for (const path of appendables) {
     if (!path) continue;
-    await $`cat "${path}" >> "${output}"`.quiet();
+    await fs.appendFile(output, await Bun.file(path).bytes());
   }
 
   if (zip.length > 0) {
     // Extract all ZIP-like archives to a temporary directory
     await fs.mkdir(tmp + "dir");
     for (const curr of zip) {
-      await $`unzip -d "${tmp}dir" "${curr}"`.quiet();
+      await $`${unzipCmd} -d "${tmp}dir" "${curr}"`.quiet();
     }
     // Create archive from temporary directory
-    await $`cd "${tmp}dir" && zip -r9 "../${tmp + ".zip"}" .`.quiet();
+    await $`${zipCmd} -r9 "../${tmp + ".zip"}" .`.cwd(`${tmp}dir`);
     // Append the ZIP file as-is to the end of the file
-    await $`cat "${tmp + ".zip"}" >> "${output}"`.quiet();
+    await fs.appendFile(output, await Bun.file(tmp + ".zip").bytes());
     // Apply self-extracting archive offset fix for better compatibility
-    await $`zip -A "${output}"`.quiet();
+    await $`${zipCmd} -A "${output}"`.quiet();
   }
 
 } catch (e) {
