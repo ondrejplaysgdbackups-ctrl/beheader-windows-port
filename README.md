@@ -26,8 +26,8 @@ You must install the following tools and ensure they are available in your `PATH
 - Git for Windows — provides `unzip.exe` and `zip.exe`  
   
 Default Git for Windows paths:  
-`C:\Program Files\Git\usr\bin\unzip.exe`
-`C:\Program Files\Git\usr\bin\zip.exe`
+`C:\Program Files\Git\usr\bin\unzip.exe`  
+`C:\Program Files\Git\usr\bin\zip.exe`  
   
 These replace the Linux `zip` and `unzip` utilities.  
   
