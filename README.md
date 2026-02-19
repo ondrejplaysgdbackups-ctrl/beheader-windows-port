@@ -2,7 +2,7 @@
 Polyglot generator for media files.  
   
 This is a Windows‑compatible port of the original Linux‑only project:    
-https://github.com/p2r3/beheader  
+[https://github.com/p2r3/beheader](https://github.com/p2r3/beheader)  
   
 The goal of this fork is to make beheader run natively on Windows systems by adapting Linux‑specific dependencies, paths, and command behavior.  
   
