@@ -45,9 +45,10 @@ If you're on Linux, the original README applies:
 If you use Nix or NixOS, the included `flake.nix` will install everything automatically.  
   
 ## Usage  
-With all dependencies set up, you should be able to run:  
-`bun run beheader.js <output> <image> <videoaudio> [-options] [appendable...]`
-  
+With all dependencies set up, you should be able to run:
+```
+bun run beheader.js <output> <image> <videoaudio> [-options] [appendable...]
+```
 ### Positional arguments  
 - `output` — Path of resulting polyglot file.  
 - `image` — Path of input image file.  
