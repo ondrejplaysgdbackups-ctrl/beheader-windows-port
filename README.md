@@ -20,7 +20,7 @@ Key changes include:
 You must install the following tools and ensure they are available in your `PATH`:  
   
 - Bun JavaScript runtime — https://bun.sh  
-- FFmpeg and FFprobe — Windows builds available  
+- FFmpeg and FFprobe — Windows builds available [here](https://www.ffmpeg.org/download.html)  
 - ImageMagick — use `magick convert` instead of `convert`  
 - Bento4 mp4edit.exe — https://www.bento4.com  
 - Git for Windows — provides `unzip.exe` and `zip.exe`  
